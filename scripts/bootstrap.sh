@@ -17,5 +17,8 @@ export TMPDIR="$ROOT/tmp" TMP="$ROOT/tmp" TEMP="$ROOT/tmp"
 export PYTHONPATH="$ROOT/src" XDG_CACHE_HOME="$ROOT/cache"
 export PIP_CACHE_DIR="$ROOT/cache/pip" HF_HOME="$ROOT/cache/huggingface"
 export PYTHONDONTWRITEBYTECODE=1
-"$ROOT/.venv/bin/python" -m hydrocast.cli --root "$ROOT" preflight
+# Persist the src/ import path inside this project-local virtual environment.
+"$ROOT/.venv/bin/python" "$ROOT/scripts/register_local_source.py" "$ROOT"
+# Check a fresh interpreter can import the package without PYTHONPATH.
+env -u PYTHONPATH "$ROOT/.venv/bin/python" -m hydrocast.cli --root "$ROOT" preflight
 printf 'Ready for source downloads; no files were installed into shared Anaconda.\n'
