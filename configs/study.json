@@ -1,0 +1,17 @@
+{
+  "project": "hydrocast-llm",
+  "phase": "0-data-readiness",
+  "dataset_full_doi": "10.24416/UU01-39ZXC4",
+  "dataset_lite_zenodo_record": "21337532",
+  "model_training_enabled": false,
+  "forecast_tasks_locked": false,
+  "primary_split": "chronological + catchment holdout after audit",
+  "censored_measurement_policy": "preserve flags and bounds; do not use pre-imputed obs as exact label",
+  "future_weather_policy": "history only or a forecast issued before prediction origin",
+  "reproducibility": {
+    "do_not_mix_lite_with_full_without_deduplication": true,
+    "no_random_window_split": true,
+    "no_test_fitting": true,
+    "no_laboratory_safe_water_claims": true
+  }
+}

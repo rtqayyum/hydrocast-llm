@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=hc_phase0
+#SBATCH --partition=longq
+#SBATCH --time=23:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
+#SBATCH --output=/home/tariq.qayyum/hpc/hydrocast-llm/logs/%x_%j.out
+#SBATCH --error=/home/tariq.qayyum/hpc/hydrocast-llm/logs/%x_%j.err
+
+# CPU-only first gate: per-constituent data audit, NOT LLM or GPU training.
+set -Eeuo pipefail
+ROOT=/home/tariq.qayyum/hpc/hydrocast-llm
+export HYDROCAST_ROOT="$ROOT" HYDROCAST_EXPECTED_ROOT="$ROOT"
+cd "$ROOT"
+mkdir -p "$ROOT"/{logs,logs/workers,results,outputs,outputs/audit/shards,figures,reports,checkpoints,tmp,cache,models,data/raw/lite,data/raw/full,data_manifest}
+export TMPDIR="$ROOT/tmp" TEMP="$ROOT/tmp" TMP="$ROOT/tmp"
+export XDG_CACHE_HOME="$ROOT/cache" PIP_CACHE_DIR="$ROOT/cache/pip"
+export HF_HOME="$ROOT/cache/huggingface" HF_DATASETS_CACHE="$ROOT/cache/huggingface/datasets"
+export TORCH_HOME="$ROOT/cache/torch" TRITON_CACHE_DIR="$ROOT/cache/triton"
+export MPLCONFIGDIR="$ROOT/cache/matplotlib" PYTHONPATH="$ROOT/src"
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONUNBUFFERED=1
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+
+failure_report() {
+  local code="$1"
+  echo "ERROR: Phase 0 failed with exit code $code; partial shards retained under $ROOT/outputs/audit/shards" >&2
+  printf '{"status":"failed","exit_code":%s,"job_id":"%s","note":"Review logs; rerun Batch to resume completed shards."}\n' \
+    "$code" "${SLURM_JOB_ID:-unknown}" > "$ROOT/results/last_job_failure.json"
+  exit "$code"
+}
+trap 'failure_report "$?"' ERR
+
+if ! type module >/dev/null 2>&1; then
+  # Typical Slurm shell provides module as a function; if not, load only the system shell hook.
+  if [[ -f /etc/profile.d/modules.sh ]]; then
+    # shellcheck disable=SC1091
+    source /etc/profile.d/modules.sh
+  fi
+fi
+module load anaconda3
+if [[ ! -x "$ROOT/.venv/bin/python" ]]; then
+  python -m venv "$ROOT/.venv"
+fi
+# shellcheck disable=SC1091
+source "$ROOT/.venv/bin/activate"
+"$ROOT/.venv/bin/python" -m hydrocast.cli --root "$ROOT" preflight
+srun --ntasks=1 --cpus-per-task="${SLURM_CPUS_PER_TASK:-8}" \
+  "$ROOT/.venv/bin/python" -m hydrocast.cli --root "$ROOT" audit \
+  --workers "${SLURM_CPUS_PER_TASK:-8}"
+echo "SUCCESS Phase 0 inventory complete. This is not a model-training result."
+echo "REPORT $ROOT/reports/PHASE0_AUDIT.md"
+echo "JSON $ROOT/results/phase0_summary.json"

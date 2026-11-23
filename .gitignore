@@ -1,0 +1,22 @@
+# Everything below is local HPC data/compute, never put in GitHub
+.venv/
+.conda-git/
+.tools/
+data/raw/
+logs/
+results/
+outputs/
+figures/
+reports/
+checkpoints/
+tmp/
+cache/
+models/
+*.part
+*.pyc
+__pycache__/
+.DS_Store
+# Review includes source-linked licenses; never automatically redistribute source datasets
+data_manifest/FULL_ARCHIVE_MANIFEST.csv
+data_manifest/LICENSE_REVIEW.json
+data_manifest/zenodo_lite_v1.1.json

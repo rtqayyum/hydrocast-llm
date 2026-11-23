@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=65"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "hydrocast-llm"
+version = "0.1.0"
+description = "Leakage-conscious global water quality forecasting research (Phase 0: data audit)"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+[tool.setuptools.packages.find]
+where = ["src"]

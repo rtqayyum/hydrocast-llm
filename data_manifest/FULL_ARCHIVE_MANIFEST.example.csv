@@ -1,0 +1,3 @@
+path,sha256,role,license_id
+# Replace example with real file rows under data/raw/full; no placeholders permitted when verifying.
+# Roles required: water_quality,daily_weather,site_metadata,licenses.
