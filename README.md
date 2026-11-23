@@ -189,6 +189,54 @@ before a large download. If the Yoda landing is JavaScript-only or blocked,
 view the official DOI in your browser and provide the actual file listing.
 **G0 and GPU training remain blocked.**
 
+## Full dataset from Yoda: **Slurm jobs, never login nodes**
+
+The published Utrecht Yoda downloader constructs a client ZIP from the Yoda
+file manifest and individual file URLs. We obtain the **same published
+manifest** with a short CPU Slurm job, then download original published files
+with a separate resumable **CPU** Slurm job. No large file transfer on login.
+
+```bash
+cd /home/tariq.qayyum/hpc/hydrocast-llm
+git pull --ff-only origin main
+bash -n hpc/02_yoda_inventory.sbatch
+bash -n hpc/03_yoda_download.sbatch
+sbatch hpc/02_yoda_inventory.sbatch
+```
+
+- Inventory allocation: `longq`, 1 CPU, 4 GB RAM, 30 minutes, 0 GPUs.
+- Output: `reports/FULL_YODA_INVENTORY.md` and
+  `results/full_yoda_inventory.json`.
+- **Review publisher file count, declared byte sizes and YOUR storage quota**
+  before the next job. The prior `df` result is free filesystem space, NOT
+  the user's allocated quota.
+
+After successful inventory, with the quota checked and a suitable size cap
+(default maximum 500 GiB of project-local full-release files), submit the
+transfer on a compute node:
+
+```bash
+sbatch hpc/03_yoda_download.sbatch
+# Or explicitly set a different checked total byte cap:
+# sbatch --export=ALL,HC_MAX_DOWNLOAD_GIB=750 hpc/03_yoda_download.sbatch
+```
+
+- Download allocation: `longq`, 2 CPUs, 8 GB RAM, max 20 days (per observed
+  partition MaxTime), 0 GPUs. Network policy on compute nodes remains untested.
+- Destination: `data/raw/full/yoda_original/`, with `.part` files and
+  incremental SHA256 ledger under `outputs/full_download/complete.jsonl`.
+- Progress: `outputs/full_download/progress.json` and
+  `logs/hc_yoda_download_<JOB_ID>.out`.
+- Download summary: `results/full_yoda_download.json` (only after complete).
+- If interrupted, **resubmit the exact same Slurm job** to resume.
+- Transfers are transport-checked, not yet publisher-checksum-verified. The
+  full-data G0 remains **closed** until license, content, meteorological
+  coverage, source hashes and provenance checks are complete.
+
+All publisher HTTP requests run **inside Slurm**. The script aborts on login
+nodes and if called without `SLURM_JOB_ID`, rejects unsafe paths, refuses
+unexpected remote domains, and never overwrites untracked existing files.
+
 ## GitHub repository and privacy
 
 The source repository is `rtqayyum/hydrocast-llm`. Its current visibility is
