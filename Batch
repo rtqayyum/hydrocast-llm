@@ -40,11 +40,11 @@ if ! type module >/dev/null 2>&1; then
   fi
 fi
 module load anaconda3
-if [[ ! -x "$ROOT/.venv/bin/python" ]]; then
-  python -m venv "$ROOT/.venv"
-fi
+# Idempotent environment setup, including persistent local package import.
+bash "$ROOT/scripts/bootstrap.sh"
 # shellcheck disable=SC1091
 source "$ROOT/.venv/bin/activate"
+unset PYTHONPATH
 "$ROOT/.venv/bin/python" -m hydrocast.cli --root "$ROOT" preflight
 srun --ntasks=1 --cpus-per-task="${SLURM_CPUS_PER_TASK:-8}" \
   "$ROOT/.venv/bin/python" -m hydrocast.cli --root "$ROOT" audit \
