@@ -78,3 +78,21 @@ sbatch /home/tariq.qayyum/hpc/hydrocast-llm/Batch
 ```
 
 No completed shard is overwritten when source fingerprints match.
+
+## Phase 0b: station support screen (after successful Phase 0)
+
+```bash
+cd /home/tariq.qayyum/hpc/hydrocast-llm
+git pull --ff-only origin main
+bash scripts/bootstrap.sh
+bash -n hpc/01_screen.sbatch
+sbatch /home/tariq.qayyum/hpc/hydrocast-llm/hpc/01_screen.sbatch
+```
+
+Requested: `longq`, 4 CPUs, 32 GB RAM, 23 hours, zero GPUs.
+This only counts training-only *candidate* stations, not valid forecast pairs.
+The output is `reports/PHASE0B_STATION_SUPPORT.md` with JSON
+`results/phase0b_summary.json`. Progress is in `outputs/screen/progress.json`,
+worker logs are `logs/workers/screen_*.log`, and Slurm logs are
+`logs/hc_screen_<JOB_ID>.out` and `.err`. Re-submit after correcting failures;
+completed shards are reused. Never commit or publish raw data or job logs.
