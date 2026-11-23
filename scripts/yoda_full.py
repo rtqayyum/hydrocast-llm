@@ -22,7 +22,11 @@ from urllib.request import Request, urlopen
 
 ROOT = Path("/home/tariq.qayyum/hpc/hydrocast-llm")
 LANDING = "https://public.yoda.uu.nl/geo/UU01/1U1Q13.html"
-HOST = "public.yoda.uu.nl"
+# The Yoda landing page is on public.yoda.uu.nl; its publisher-provided
+# viewContents link for this release points to the Utrecht geo storage host.
+# These are two exact allowed hosts, never a wildcard suffix match.
+LANDING_HOST = "public.yoda.uu.nl"
+STORAGE_HOST = "geo.public.data.uu.nl"
 LIMIT_HTML = 4 * 1024 * 1024
 LIMIT_MANIFEST = 128 * 1024 * 1024
 CHUNK = 8 * 1024 * 1024
@@ -46,7 +50,23 @@ class YodaLanding(HTMLParser):
 
 def require_url(url):
     parsed = urlparse(url)
-    if parsed.scheme != "https" or parsed.hostname != HOST or parsed.username or parsed.password:
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise DownloadError("Invalid publisher port") from exc
+    if (parsed.scheme != "https" or parsed.username or parsed.password
+            or port not in (None, 443)):
+        raise DownloadError("Unexpected publisher URL/redirect: " + url[:200])
+    # The landing/manifest are published under geo/UU01/. The actual file
+    # storage URL in the university's own viewContents link is under the
+    # dedicated vault-caravan-qual/ prefix on another Utrecht HTTPS host.
+    if parsed.hostname == LANDING_HOST:
+        allowed = parsed.path.startswith("/geo/UU01/")
+    elif parsed.hostname == STORAGE_HOST:
+        allowed = parsed.path.startswith("/vault-caravan-qual/")
+    else:
+        allowed = False
+    if not allowed:
         raise DownloadError("Unexpected publisher URL/redirect: " + url[:200])
     return url
 
