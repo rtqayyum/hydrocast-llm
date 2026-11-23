@@ -47,6 +47,8 @@ Do not combine with another research project's code or data.
 ssh tariq.qayyum@${HYDROCAST_SSH_HOST}
 cd /home/tariq.qayyum/hpc/hydrocast-llm
 bash scripts/bootstrap.sh
+# Phase 0 works with cluster Anaconda Python 3.9+; bootstrap registers
+# src/ inside the project-local .venv so later CLI commands work directly.
 # Requests ~641 MB compressed for wqms-csv.zip, plus small metadata.
 # Uses Zenodo checksums and resumes partial HTTP downloads where supported.
 # INTERNET ACCESS MAY BE BLOCKED on login nodes; if so, download on your Mac
