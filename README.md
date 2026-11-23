@@ -162,6 +162,33 @@ hashes and presence of critical roles. That flag is a **necessary but not suffic
 condition for model training; observation eligibility and scientific leakage tests
 still have to be completed. Never relabel the lite archive as full.
 
+## Full-release access check (next step)
+
+We have verified **only the lite observation files** on HPC. The official
+Caravan-Qual *full* release is at https://doi.org/10.24416/UU01-39ZXC4
+(Utrecht Yoda); the daily weather archive is not downloaded yet.
+
+After pulling the latest GitHub code, run this very small read-only metadata
+probe on the HPC login node (no model, no large data transfer):
+
+```bash
+cd /home/tariq.qayyum/hpc/hydrocast-llm
+git pull --ff-only origin main
+bash scripts/bootstrap.sh
+.venv/bin/python scripts/probe_full_archive.py
+cat reports/FULL_ARCHIVE_ACCESS.md
+df -h .
+quota -s 2>/dev/null || true
+```
+
+This stores `results/full_archive_probe.json` and
+`reports/FULL_ARCHIVE_ACCESS.md`, with optional fetched landing HTML under
+`outputs/full_probe/`. It never treats visible links as verified archives:
+confirm file names, sizes, source licenses, available quota and checksums
+before a large download. If the Yoda landing is JavaScript-only or blocked,
+view the official DOI in your browser and provide the actual file listing.
+**G0 and GPU training remain blocked.**
+
 ## GitHub repository and privacy
 
 The source repository is `rtqayyum/hydrocast-llm`. Its current visibility is
