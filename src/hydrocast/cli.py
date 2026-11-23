@@ -11,6 +11,7 @@ from . import audit
 from .paths import initialize, inside, root_path
 from .util import utc_now, write_json
 from . import zenodo
+from . import screen
 
 
 def preflight(root):
@@ -45,6 +46,9 @@ def main(argv=None):
     auditor = sub.add_parser('audit', help='Stream per-constituent archive; checkpoint/restart each shard')
     auditor.add_argument('--workers', type=int, default=8)
     auditor.add_argument('--max-shards', type=int, help='DEBUG ONLY: process first N constituents')
+    screening = sub.add_parser('screen', help='Phase 0b training-only station support screen (no models)')
+    screening.add_argument('--workers', type=int, default=4)
+    screening.add_argument('--max-shards', type=int, help='Debug-only subset of constituents')
     args = parser.parse_args(argv)
     root = root_path(args.root)
     initialize(root)
@@ -60,6 +64,8 @@ def main(argv=None):
         if args.workers < 1 or (args.max_shards is not None and args.max_shards < 1):
             parser.error('workers and max-shards must be positive')
         return audit.run(root, workers=args.workers, max_shards=args.max_shards)
+    if args.command == 'screen':
+        return screen.run(root, workers=args.workers, max_shards=args.max_shards)
     return 2
 
 
