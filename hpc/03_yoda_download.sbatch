@@ -26,7 +26,7 @@ module load anaconda3
 bash "$ROOT/scripts/bootstrap.sh"
 unset PYTHONPATH
 # Safety cap limits total local dataset bytes. Increase only after checking YOUR quota.
-CAP_GIB="\${HC_MAX_DOWNLOAD_GIB:-500}"
+CAP_GIB="${HC_MAX_DOWNLOAD_GIB:-500}"
 if ! [[ "$CAP_GIB" =~ ^[0-9]+$ ]] || (( CAP_GIB < 1 )); then
   echo "FATAL invalid HC_MAX_DOWNLOAD_GIB (positive integer required)" >&2
   exit 2
