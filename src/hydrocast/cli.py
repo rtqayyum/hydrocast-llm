@@ -17,7 +17,7 @@ def preflight(root):
     checks = {
         'root_absolute': root.is_absolute(),
         'root_is_directory': root.is_dir(),
-        'python_version_ok': sys.version_info >= (3, 10),
+        'python_version_ok': sys.version_info >= (3, 9),
         'virtualenv_local_when_active': (sys.prefix == sys.base_prefix or
             Path(sys.prefix).resolve() == inside(root, '.venv')),
         'project_root_inside_expected_tree': (str(root) == str(root_path(os.environ.get('HYDROCAST_EXPECTED_ROOT') or root))),
