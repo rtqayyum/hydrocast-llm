@@ -127,7 +127,7 @@ def parse_manifest(raw):
     return entries
 
 
-def get_metadata(root):
+def get_metadata(root, save_manifest=False):
     # Yoda's published JS builds file URLs from viewContents and the sibling
     # {data-random-id}-manifest.json; see official Yoda download.js.
     raw_page = publisher_get(LANDING, LIMIT_HTML, is_html=True)
@@ -136,7 +136,8 @@ def get_metadata(root):
     entries = parse_manifest(raw_manifest)
     sha = hashlib.sha256(raw_manifest).hexdigest()
     manifest_path = root / "data_manifest" / "yoda_full_publisher_manifest.json"
-    manifest_path.write_bytes(raw_manifest)
+    if save_manifest:
+        manifest_path.write_bytes(raw_manifest)
     return base, url, sha, entries
 
 
@@ -151,7 +152,7 @@ def output_json(path, data):
 
 
 def inventory(root):
-    base, url, sha, entries = get_metadata(root)
+    base, url, sha, entries = get_metadata(root, save_manifest=True)
     files = [e for e in entries if not e["directory"]]
     dirs = sum(e["directory"] for e in entries)
     sizes = [e["size"] for e in files if e["size"] is not None]
@@ -335,8 +336,8 @@ def perform_download(root, cap_gib):
             raise DownloadError("Untracked existing file; refusing to overwrite " + name)
         part = dest.with_name(dest.name + ".part")
         # Reserve existing files + each partial file, not compressed/deduplicated pseudo-quota.
-        present = sum(x.stat().st_size for x in target_root.rglob("*") if x.is_file())
-        allowance = cap - (present - (part.stat().st_size if part.is_file() else 0))
+        prior_part_bytes = part.stat().st_size if part.is_file() else 0
+        allowance = cap - (present - prior_part_bytes)
         if allowance <= 0:
             raise DownloadError("Configured download cap reached, retaining all partial data")
         source_url = require_url(base + "/" + quote(name, safe="/"))
@@ -354,6 +355,7 @@ def perform_download(root, cap_gib):
                  "sha256": result["sha256"], "manifest_sha256": sha,
                  "verification": "transport_sha256_only_no_publisher_checksum"}
         append_complete(ledger, event)
+        present = present - prior_part_bytes + result["size"]
         completed += 1
         print("DOWNLOADED", i, len(files), name, "bytes", result["size"], flush=True)
         output_json(root / "outputs/full_download/progress.json",
