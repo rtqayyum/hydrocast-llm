@@ -20,3 +20,6 @@ __pycache__/
 data_manifest/FULL_ARCHIVE_MANIFEST.csv
 data_manifest/LICENSE_REVIEW.json
 data_manifest/zenodo_lite_v1.1.json
+
+# Publisher manifest is runtime inventory, not source code
+data_manifest/yoda_full_publisher_manifest.json
