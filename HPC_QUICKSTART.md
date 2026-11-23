@@ -96,3 +96,25 @@ The output is `reports/PHASE0B_STATION_SUPPORT.md` with JSON
 worker logs are `logs/workers/screen_*.log`, and Slurm logs are
 `logs/hc_screen_<JOB_ID>.out` and `.err`. Re-submit after correcting failures;
 completed shards are reused. Never commit or publish raw data or job logs.
+
+## Phase 0c: Full archive access check
+
+The official full Caravan-Qual release (daily weather) is hosted at
+https://doi.org/10.24416/UU01-39ZXC4. Use this metadata-only test:
+
+```bash
+cd /home/tariq.qayyum/hpc/hydrocast-llm
+git pull --ff-only origin main
+bash scripts/bootstrap.sh
+.venv/bin/python scripts/probe_full_archive.py
+cat reports/FULL_ARCHIVE_ACCESS.md
+df -h .
+quota -s 2>/dev/null || true
+```
+
+No GPU, no large transfer, and no dataset claims. Output:
+`results/full_archive_probe.json`, `reports/FULL_ARCHIVE_ACCESS.md`,
+and if reachable, `outputs/full_probe/landing.html`. Disk free space
+reported by the probe is *not* your university quota. If access fails or the
+file links are JavaScript-generated, inspect the official DOI in a browser and
+supply real download file links before adding the full-release downloader.
