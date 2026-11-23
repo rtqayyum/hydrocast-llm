@@ -22,6 +22,22 @@ class YodaManifestTests(unittest.TestCase):
         self.assertEqual(manifest_url,
                          "https://public.yoda.uu.nl/geo/UU01/1U1Q13-manifest.json")
 
+    def test_real_yoda_geo_storage_redirect_from_hpc_log(self):
+        # The official public landing page links directly to this Utrecht
+        # storage host, observed in the first real compute-node inventory run.
+        html = ('<html><a id="viewContents" '
+                'href="https://geo.public.data.uu.nl:443/'
+                'vault-caravan-qual/research-caravan-qual%5B1785151805%5D" '
+                'data-random-id="1U1Q13">View</a></html>')
+        base, manifest_url = yoda.parse_page(html, yoda.LANDING)
+        self.assertEqual(
+            base, "https://geo.public.data.uu.nl:443/"
+                  "vault-caravan-qual/research-caravan-qual%5B1785151805%5D")
+        self.assertEqual(
+            manifest_url,
+            "https://public.yoda.uu.nl/geo/UU01/1U1Q13-manifest.json")
+        yoda.require_url(base + "/daily_weather/1980.nc")
+
     def test_missing_view_contents_never_guesses_download_url(self):
         with self.assertRaises(yoda.DownloadError):
             yoda.parse_page('<html><a href="#">Download as ZIP</a></html>', yoda.LANDING)
@@ -49,8 +65,13 @@ class YodaManifestTests(unittest.TestCase):
             yoda.parse_manifest(b'{"not":"a list"}')
 
     def test_refuse_external_urls(self):
-        for url in ("http://public.yoda.uu.nl/geo/", "https://evil.invalid/x",
-                    "https://public.yoda.uu.nl.evil.invalid/x"):
+        for url in ("http://public.yoda.uu.nl/geo/UU01/file",
+                    "https://evil.invalid/x",
+                    "https://public.yoda.uu.nl.evil.invalid/x",
+                    "https://geo.public.data.uu.nl.evil.invalid/vault-caravan-qual/x",
+                    "https://geo.public.data.uu.nl:8443/vault-caravan-qual/x",
+                    "https://geo.public.data.uu.nl/another-project/x",
+                    "https://public.yoda.uu.nl/other-publication/x"):
             with self.subTest(url=url):
                 with self.assertRaises(yoda.DownloadError):
                     yoda.require_url(url)
