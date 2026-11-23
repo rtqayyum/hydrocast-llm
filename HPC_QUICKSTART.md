@@ -118,3 +118,44 @@ and if reachable, `outputs/full_probe/landing.html`. Disk free space
 reported by the probe is *not* your university quota. If access fails or the
 file links are JavaScript-generated, inspect the official DOI in a browser and
 supply real download file links before adding the full-release downloader.
+
+## Full release: all large transfers on compute nodes (not login)
+
+```bash
+cd /home/tariq.qayyum/hpc/hydrocast-llm
+git pull --ff-only origin main
+bash -n hpc/02_yoda_inventory.sbatch hpc/03_yoda_download.sbatch
+sbatch hpc/02_yoda_inventory.sbatch
+```
+
+Copy the returned inventory job ID and check:
+```bash
+squeue -u tariq.qayyum
+cat reports/FULL_YODA_INVENTORY.md
+cat results/full_yoda_inventory.json
+```
+
+First confirm your actual personal **quota**, file sizes, and whether
+internet access works on your compute nodes. The inventory job makes only
+small publisher metadata requests. It requests 1 CPU, 4GB, 30 minutes.
+
+After inventory and quota review, the full download is a **separate**
+compute-node job (2 CPU, 8GB, `longq`, max 20-day wall time, 0 GPUs):
+
+```bash
+sbatch hpc/03_yoda_download.sbatch
+```
+
+`HC_MAX_DOWNLOAD_GIB` is a 500 GiB default total local-data cap, not an
+estimate of the actual full dataset size. To change it after checking quota:
+`sbatch --export=ALL,HC_MAX_DOWNLOAD_GIB=750 hpc/03_yoda_download.sbatch`.
+
+Sources are under `data/raw/full/yoda_original/`, journal under
+`outputs/full_download/complete.jsonl`, progress under
+`outputs/full_download/progress.json`, summary under
+`results/full_yoda_download.json`, and per-job Slurm logs under
+`logs/hc_yoda_download_<JOB_ID>.{out,err}`.
+
+Resubmit if interrupted; verified existing completed files and partial
+range downloads are retained. Full-release G0 stays closed pending a
+scientific/licensing audit and publisher-checksum review.
