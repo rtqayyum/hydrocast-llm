@@ -15,7 +15,7 @@ checks = {
     'has_srun': bool(re.search(r'\bsrun\b', slurm)),
     'root_path_correct': f'ROOT={expected}' in slurm and f'ROOT={expected}' in boot,
     'logs_inside_project': f'{expected}/logs/%x_%j.out' in slurm and f'{expected}/logs/%x_%j.err' in slurm,
-    'venv_local': '"$ROOT/.venv"' in slurm and '"$ROOT/.venv"' in boot,
+    'venv_local': ('"$ROOT/.venv/bin/activate"' in slurm and '"$ROOT/.venv"' in boot and 'register_local_source.py' in boot),
     'has_report': 'reports/PHASE0_AUDIT.md' in slurm,
     'no_shared_conda_write': not bool(re.search(r'(pip install|conda install|mkdir|touch|rm)\s+[^\n]*?/cm/shared/apps/anaconda3', slurm + boot)),
     'uses_project_tmpdir': 'TMPDIR="$ROOT/tmp"' in slurm,
