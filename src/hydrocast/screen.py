@@ -105,7 +105,7 @@ def _scan(stream, member, min_train, min_years, min_span_days):
     for site in sites.values():
         count = site.train_exact + site.train_censored
         train_sites += int(count > 0)
-        if (count >= min_train and site.train_yearmask.bit_count() >= min_years
+        if (count >= min_train and bin(site.train_yearmask).count('1') >= min_years
                 and site.train_first is not None and site.train_last is not None
                 and (site.train_last - site.train_first).days >= min_span_days):
             train_candidates += 1
