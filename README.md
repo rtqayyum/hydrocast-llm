@@ -127,6 +127,30 @@ tail -f /home/tariq.qayyum/hpc/hydrocast-llm/logs/hc_phase0_<JOB_ID>.err
 
 All paths above are relative to the fixed HPC root.
 
+## Phase 0b: station support screening (after Phase 0)
+
+The first audit can count 96 million rows without proving that a monitoring
+station has sufficient historical samples for forecasting. Phase 0b screens
+**all 100 constituents** using training-era observations only. It reports
+candidate station counts and describes later-period label support separately.
+This is **not** a list of valid forecast pairs, a harmonized dataset, or a
+trained model. The thresholds and 2018/2021 cutoffs are provisional.
+
+```bash
+cd /home/tariq.qayyum/hpc/hydrocast-llm
+git pull --ff-only origin main
+bash scripts/bootstrap.sh
+bash -n hpc/01_screen.sbatch
+sbatch /home/tariq.qayyum/hpc/hydrocast-llm/hpc/01_screen.sbatch
+```
+
+Allocation: CPU only, `longq`, 1 task × 4 CPU cores, 32 GiB RAM, 23 hours,
+0 GPUs. Run this only after Phase 0 has completed successfully.
+Screening resumes completed constituent shards when its source fingerprints
+and screen rules match. Outputs: `reports/PHASE0B_STATION_SUPPORT.md`,
+`results/phase0b_summary.json`, `outputs/screen/progress.json`, and
+`logs/hc_screen_<JOB_ID>.{out,err}`.
+
 ## 6. Full release gate (not auto-passed)
 
 The full release including daily meteorological forcing requires an independent
