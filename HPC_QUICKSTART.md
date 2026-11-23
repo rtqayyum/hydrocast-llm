@@ -23,6 +23,8 @@ rsync -az --progress --exclude='.git/' --exclude='.venv/' \
 ssh tariq.qayyum@${HYDROCAST_SSH_HOST}
 cd /home/tariq.qayyum/hpc/hydrocast-llm
 bash scripts/bootstrap.sh
+# Confirm the local package works after PYTHONPATH is removed:
+env -u PYTHONPATH .venv/bin/python -m hydrocast.cli --root "$PWD" preflight
 .venv/bin/python -m hydrocast.cli --root "$PWD" fetch-lite --observations
 ```
 
